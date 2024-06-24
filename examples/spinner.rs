@@ -1,4 +1,4 @@
-use fk::spinner;
+use termkit::spinner;
 
 fn main() {
     let mut spinner = spinner::Spinner::new();
