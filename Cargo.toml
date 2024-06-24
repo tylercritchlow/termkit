@@ -1,5 +1,5 @@
 [package]
-name = "termkit"
+name = "term-kit"
 authors = ["Tyler Critchlow"]
 category = "utilities"
 keywords = ["terminal", "ui", "widgets"]

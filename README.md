@@ -26,7 +26,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-termkit = "*"
+term-kit = "*" # make sure this is term-kit and not termkit
 ```
 and refer to the [examples](examples) for usage.
 
