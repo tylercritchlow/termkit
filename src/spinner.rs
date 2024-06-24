@@ -1,50 +1,54 @@
 use crossterm::terminal::Clear;
 use crossterm::{cursor, execute, style::Print, terminal::ClearType};
 use std::io::{stdout, Write};
+use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
+use std::thread;
+use std::time::Duration;
 
 pub struct Spinner {
     frames: Vec<&'static str>,
-    current_frame: usize,
-    is_spinning: bool,
-    position: (u16, u16), // Store initial cursor position
+    is_spinning: Arc<AtomicBool>, 
+    position: (u16, u16),
 }
 
 impl Spinner {
     pub fn new() -> Self {
-        let (x, y) = cursor::position().unwrap(); // Get initial position
+        let (x, y) = cursor::position().unwrap();
         Self {
             frames: vec!["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
-            current_frame: 0,
-            is_spinning: false,
-            position: (x, y), // Store initial position
+            is_spinning: Arc::new(AtomicBool::new(false)),
+            position: (x, y),
         }
     }
 
-    pub fn start(&mut self) {
-        self.is_spinning = true;
-        self.render().unwrap();
+    pub fn start(&self) {
+        let is_spinning = self.is_spinning.clone();
+        let position = self.position;
+        let frames = self.frames.clone();
+        
+        is_spinning.store(true, Ordering::Relaxed);
+
+        thread::spawn(move || { 
+            let mut current_frame = 0;
+            while is_spinning.load(Ordering::Relaxed) {
+                let frame = frames[current_frame];
+                let mut stdout = stdout();
+                execute!(
+                    stdout,
+                    cursor::MoveTo(position.0, position.1),
+                    Clear(ClearType::CurrentLine),
+                    Print(frame)
+                )
+                .unwrap();
+                stdout.flush().unwrap();
+                current_frame = (current_frame + 1) % frames.len();
+                thread::sleep(Duration::from_millis(100));
+            }
+        });
     }
 
-    pub fn stop(&mut self) {
-        self.is_spinning = false;
-        execute!(stdout(), Clear(ClearType::CurrentLine)).unwrap();
-    }
-
-    fn render(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let mut stdout = stdout();
-        execute!(stdout, cursor::MoveTo(self.position.0, self.position.1))?; // Move back to initial position
-        execute!(
-            stdout,
-            Clear(ClearType::UntilNewLine),
-            Print(self.frames[self.current_frame])
-        )?;
-        stdout.flush()?;
-
-        self.current_frame = (self.current_frame + 1) % self.frames.len();
-        if self.is_spinning {
-            std::thread::sleep(std::time::Duration::from_millis(100));
-            self.render()?;
-        }
-        Ok(())
+    pub fn stop(&self) {
+        print!("{esc}c", esc = 27 as char);
+        self.is_spinning.store(false, Ordering::Relaxed);
     }
 }

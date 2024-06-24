@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 crossterm = "0.27.0"
-rand = "0.8.5"
-ratatui = "0.27.0"
 textwrap = "0.16.1"
+
+[dev-dependencies]
+rand = "0.8.5"
