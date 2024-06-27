@@ -1,4 +1,4 @@
-use termkit::listselector::ListSelector;
+use term_kit::listselector::ListSelector;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let options = vec![

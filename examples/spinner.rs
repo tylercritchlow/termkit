@@ -1,5 +1,5 @@
 use std::thread;
-use termkit::spinner::Spinner;
+use term_kit::spinner::Spinner;
 fn main() {
     let mut spinner = Spinner::new();
     spinner.start(); // Start spinning

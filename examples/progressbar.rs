@@ -1,4 +1,4 @@
-use termkit::progressbar::ProgressBar;
+use term_kit::progressbar::ProgressBar;
 use rand::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
