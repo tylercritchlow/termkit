@@ -1,6 +1,6 @@
 use crossterm::{
     cursor, execute,
-    style::Print,
+    style::{self, Color, Print, PrintStyledContent, Stylize},
     terminal::{Clear, ClearType},
 };
 use std::io::{stdout, Write};
@@ -10,54 +10,75 @@ pub struct InfoBox {
     pub title: String,
     pub message: String,
     pub width: usize,
-    pub padding: usize,  // New field for padding
+    pub padding: usize, 
+    pub title_color: Color,       // New field for title color
+    pub border_color: Color,      // New field for border color
+    pub message_color: Color,     // New field for message color
 }
 
 impl InfoBox {
-    pub fn new(title: String, message: String, width: usize, padding: Option<usize>) -> Self {
+    pub fn new(
+        title: String,
+        message: String,
+        width: usize,
+        padding: Option<usize>,
+        title_color: Option<Color>,
+        border_color: Option<Color>,
+        message_color: Option<Color>,
+    ) -> Self {
         Self {
             title,
             message,
             width,
-            padding: padding.unwrap_or(2), // Default to 2 if padding is not provided
+            padding: padding.unwrap_or(2),
+            title_color: title_color.unwrap_or(Color::White),  // Default to White if not provided
+            border_color: border_color.unwrap_or(Color::Blue),
+            message_color: message_color.unwrap_or(Color::Reset),
         }
     }
 
     pub fn render(&self) -> Result<(), Box<dyn std::error::Error>> {
         let mut stdout = stdout();
-        let total_width = self.width + 2 * self.padding + 2; // Include padding
+        let total_width = self.width + 2 * self.padding + 2;
 
         execute!(stdout, cursor::MoveToColumn(0))?;
         execute!(stdout, Clear(ClearType::UntilNewLine))?;
+
+        // Print title with color
         execute!(
             stdout,
-            Print(format!("{: <width$}", self.title, width = total_width as usize))
+            PrintStyledContent(format!("{: <width$}", self.title, width = total_width as usize).with(self.title_color))
         )?;
         execute!(stdout, Print("\n"))?;
-        execute!(stdout, Print("┌"))?;
+
+        // Print top border with color
+        execute!(stdout, PrintStyledContent("┌".with(self.border_color)))?;
         for _ in 0..total_width - 2 {
-            execute!(stdout, Print("─"))?;
+            execute!(stdout, PrintStyledContent("─".with(self.border_color)))?;
         }
-        execute!(stdout, Print("┐\n"))?;
+        execute!(stdout, PrintStyledContent("┐\n".with(self.border_color)))?;
 
         let wrapped_message = fill(&self.message, self.width);
         for line in wrapped_message.lines() {
-            execute!(stdout, Print("│"))?;
+            execute!(stdout, PrintStyledContent("│".with(self.border_color)))?;
             for _ in 0..self.padding {
                 execute!(stdout, Print(" "))?;
             }
-            execute!(stdout, Print(line))?;
+            // Print message with color
+            execute!(stdout, PrintStyledContent(line.with(self.message_color)))?; 
             for _ in 0..self.padding + (self.width - line.len()) {
                 execute!(stdout, Print(" "))?;
             }
-            execute!(stdout, Print("│\n"))?;
+            execute!(stdout, PrintStyledContent("│\n".with(self.border_color)))?;
         }
 
-        execute!(stdout, Print("└"))?;
+        // Print bottom border with color
+        execute!(stdout, PrintStyledContent("└".with(self.border_color)))?;
         for _ in 0..total_width - 2 {
-            execute!(stdout, Print("─"))?;
+            execute!(stdout, PrintStyledContent("─".with(self.border_color)))?;
         }
-        execute!(stdout, Print("┘\n"))?;
+        execute!(stdout, PrintStyledContent("┘\n".with(self.border_color)))?;
+
         stdout.flush()?;
 
         Ok(())

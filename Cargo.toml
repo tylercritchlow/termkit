@@ -17,3 +17,4 @@ textwrap = "0.16.1"
 
 [dev-dependencies]
 rand = "0.8.5"
+sysinfo = "0.30.12"

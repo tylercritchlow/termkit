@@ -1,23 +1,16 @@
 use term_kit::meter::Meter;
-use crossterm::{
-    cursor,
-    event::{read, KeyCode},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-use std::io::stdout;
+use term_kit::color::Color;
 use sysinfo::System;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut meter = Meter::new(0.0, 100.0, "CPU Usage".to_string());
-    let mut system = System::new_all();
+fn main() {
+    let mut cpu_meter = Meter::new("CPU Usage:".to_string(), 100.0, Some(Color::Red)); 
+    let mut sys = System::new_all();
 
     loop {
-        system.refresh_all();
-        let cpu_usage = system.global_cpu_info().cpu_usage();
-        meter.value = cpu_usage as f64; // Update the meter's value directly
-        meter.render();
-        std::thread::sleep(std::time::Duration::from_millis(100));
-    }
+        sys.refresh_cpu();
 
+        let cpu_usage = sys.global_cpu_info().cpu_usage();
+        
+        cpu_meter.refresh(cpu_usage.into(), 1000); 
+    }
 }

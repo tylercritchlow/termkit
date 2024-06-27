@@ -1,56 +1,35 @@
 use crossterm::{
-    cursor,
-    event::{read, Event, KeyCode, KeyEvent},
-    execute,
-    style::{Print, Stylize},
-    terminal::{
-        disable_raw_mode, enable_raw_mode, size, Clear, ClearType, EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
+    cursor, execute,
+    style::{Color, Print, PrintStyledContent, Stylize},
+    terminal::{Clear, ClearType, size},
 };
 use std::io::{stdout, Write};
+use std::thread::sleep;
+use std::time::Duration;
 
 pub struct Meter {
+    pub label: String,
     pub value: f64,
-    max_value: f64,
-    label: String,
+    pub max_value: f64,
+    pub bar_color: Color,
 }
 
 impl Meter {
-    pub fn new(value: f64, max_value: f64, label: String) -> Self {
+    pub fn new(label: String, max_value: f64, bar_color: Option<Color>) -> Self {
         Self {
-            value,
-            max_value,
             label,
+            value: 0.0,
+            max_value,
+            bar_color: bar_color.unwrap_or(Color::Green),
         }
     }
-    pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-        enable_raw_mode()?;
+
+    fn render(&self) {
         let mut stdout = stdout();
-        execute!(stdout, EnterAlternateScreen, cursor::Hide, Clear(ClearType::All))?;
-        self.render();
+        let (cols, _rows) = size().unwrap(); // +2 for padding
 
-        loop {
-            match read()? {
-                Event::Key(KeyEvent { code, .. }) => match code {
-                    KeyCode::Char('q') => break,
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
-
-        execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
-        disable_raw_mode()?;
-        Ok(())
-    }
-    pub fn render(&self) {
-        let mut stdout = stdout();
-        let (cols, _rows) = size().unwrap();
-
-        // Smarter layout
-        let label_width = self.label.len() + 2; // Label + spacing
-        let value_width = 6; // Enough for most values
+        let label_width = self.label.len() + 2;
+        let value_width = 6;
         let bar_width = cols as usize - label_width - value_width - 3; // -3 for spacing
 
         let filled_width = ((self.value / self.max_value) * bar_width as f64).round() as usize;
@@ -58,28 +37,28 @@ impl Meter {
 
         execute!(
             stdout,
+            Clear(ClearType::All),
             cursor::MoveTo(0, 0),
-            Clear(ClearType::CurrentLine),
             Print(format!(
                 "{:label_width$} |",
                 self.label,
                 label_width = label_width
-            )), // Pad label
-            Print("#".repeat(filled_width).green()),
+            )),
+            PrintStyledContent("#".repeat(filled_width).with(self.bar_color)),
             Print("-".repeat(empty_width)),
             Print(format!(
                 " {:value_width$.2}",
                 self.value,
                 value_width = value_width
-            )) // Display value
+            ))
         )
         .unwrap();
         stdout.flush().unwrap();
     }
 
-    pub fn refresh(&self) {
-        let mut stdout = stdout();
-        execute!(stdout, cursor::MoveTo(0, 0)).unwrap();
+    pub fn refresh(&mut self, new_value: f64, interval_ms: u64) {
+        self.value = new_value.min(self.max_value);
         self.render();
+        sleep(Duration::from_millis(interval_ms));
     }
 }
