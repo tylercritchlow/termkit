@@ -61,4 +61,17 @@ impl Meter {
         self.render();
         sleep(Duration::from_millis(interval_ms));
     }
+    // WIP
+    // RELEASE: 0.3.0
+    //
+    // pub fn quit(&self){
+    //     let mut stdout = stdout();
+    //     execute!(
+    //         stdout,
+    //         Clear(ClearType::All),
+    //         cursor::MoveTo(0, 0),
+    //     )
+    //     .unwrap();
+    //     stdout.flush().unwrap();
+    // }
 }

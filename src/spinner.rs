@@ -21,7 +21,7 @@ impl Spinner {
         }
     }
 
-    pub fn start(&self) {
+    pub fn render(&self) {
         let is_spinning = self.is_spinning.clone();
         let position = self.position;
         let frames = self.frames.clone();

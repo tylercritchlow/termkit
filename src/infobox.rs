@@ -1,6 +1,6 @@
 use crossterm::{
     cursor, execute,
-    style::{self, Color, Print, PrintStyledContent, Stylize},
+    style::{Color, Print, PrintStyledContent, Stylize},
     terminal::{Clear, ClearType},
 };
 use std::io::{stdout, Write};
@@ -11,9 +11,9 @@ pub struct InfoBox {
     pub message: String,
     pub width: usize,
     pub padding: usize, 
-    pub title_color: Color,       // New field for title color
-    pub border_color: Color,      // New field for border color
-    pub message_color: Color,     // New field for message color
+    pub title_color: Color,
+    pub border_color: Color,
+    pub message_color: Color,
 }
 
 impl InfoBox {
@@ -44,14 +44,12 @@ impl InfoBox {
         execute!(stdout, cursor::MoveToColumn(0))?;
         execute!(stdout, Clear(ClearType::UntilNewLine))?;
 
-        // Print title with color
         execute!(
             stdout,
             PrintStyledContent(format!("{: <width$}", self.title, width = total_width as usize).with(self.title_color))
         )?;
         execute!(stdout, Print("\n"))?;
 
-        // Print top border with color
         execute!(stdout, PrintStyledContent("┌".with(self.border_color)))?;
         for _ in 0..total_width - 2 {
             execute!(stdout, PrintStyledContent("─".with(self.border_color)))?;
@@ -64,7 +62,6 @@ impl InfoBox {
             for _ in 0..self.padding {
                 execute!(stdout, Print(" "))?;
             }
-            // Print message with color
             execute!(stdout, PrintStyledContent(line.with(self.message_color)))?; 
             for _ in 0..self.padding + (self.width - line.len()) {
                 execute!(stdout, Print(" "))?;
@@ -72,7 +69,6 @@ impl InfoBox {
             execute!(stdout, PrintStyledContent("│\n".with(self.border_color)))?;
         }
 
-        // Print bottom border with color
         execute!(stdout, PrintStyledContent("└".with(self.border_color)))?;
         for _ in 0..total_width - 2 {
             execute!(stdout, PrintStyledContent("─".with(self.border_color)))?;
