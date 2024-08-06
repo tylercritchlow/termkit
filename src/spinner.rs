@@ -1,5 +1,5 @@
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear, size};
-use crossterm::{cursor, execute, style::Print, terminal::ClearType, queue};
+use crossterm::{cursor, execute, style::Print, terminal::ClearType};
 use std::io::{stdout, Write};
 use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
 use std::thread;
