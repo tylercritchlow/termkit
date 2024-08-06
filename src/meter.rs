@@ -1,5 +1,5 @@
 use crossterm::{
-    cursor, event, execute, queue,
+    cursor, execute, queue,
     style::{Color, Print, PrintStyledContent, Stylize},
     terminal::{size, Clear, ClearType},
 };

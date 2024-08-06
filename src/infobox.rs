@@ -1,7 +1,7 @@
 use crossterm::{
     cursor, execute,
     style::{Color, Print, PrintStyledContent, Stylize},
-    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
+    terminal::{Clear, ClearType},
 };
 use std::io::{stdout, Write};
 use textwrap::fill;
