@@ -1,5 +1,5 @@
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear};
-use crossterm::{cursor, execute, style::Print, terminal::ClearType};
+use crossterm::{cursor, execute, style::Print, terminal::ClearType, queue};
 use std::io::{stdout, Write};
 use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
 use std::thread;
@@ -52,6 +52,8 @@ impl Spinner {
     pub fn stop(&self) {
         print!("{esc}c", esc = 27 as char);
         self.is_spinning.store(false, Ordering::Relaxed);
+
+        execute!(stdout(), Clear(ClearType::CurrentLine)).unwrap();
 
         disable_raw_mode().unwrap();
     }
