@@ -1,7 +1,7 @@
 use crossterm::{
     cursor, execute,
     style::{Color, Print, PrintStyledContent, Stylize},
-    terminal::{Clear, ClearType},
+    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
 };
 use std::io::{stdout, Write};
 use textwrap::fill;
@@ -76,6 +76,7 @@ impl InfoBox {
         execute!(stdout, PrintStyledContent("┘\n".with(self.border_color)))?;
 
         stdout.flush()?;
+
 
         Ok(())
     }

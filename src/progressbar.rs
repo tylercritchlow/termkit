@@ -1,7 +1,7 @@
 use crossterm::{
     cursor, execute,
     style::{Color, Print, ResetColor, SetForegroundColor},
-    terminal::{Clear, ClearType},
+    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
 };
 use std::io::{stdout, Write};
 
@@ -27,6 +27,8 @@ impl ProgressBar {
         let filled_width = (percent / 100.0 * self.width as f64).round() as u16;
         let mut stdout = stdout();
 
+        enable_raw_mode()?;
+
         execute!(stdout, cursor::MoveToColumn(0))?;
         execute!(stdout, Clear(ClearType::UntilNewLine))?;
         execute!(stdout, Print(format!("{: <20}", self.label)))?;
@@ -49,6 +51,7 @@ impl ProgressBar {
             cursor::MoveToNextLine(1)
         )?;
 
+        disable_raw_mode()?;
         stdout.flush()?;
         Ok(())
     }

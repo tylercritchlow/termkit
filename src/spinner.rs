@@ -1,4 +1,4 @@
-use crossterm::terminal::Clear;
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear};
 use crossterm::{cursor, execute, style::Print, terminal::ClearType};
 use std::io::{stdout, Write};
 use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
@@ -26,6 +26,8 @@ impl Spinner {
         let position = self.position;
         let frames = self.frames.clone();
         
+        enable_raw_mode().unwrap();
+
         is_spinning.store(true, Ordering::Relaxed);
 
         thread::spawn(move || { 
@@ -50,5 +52,7 @@ impl Spinner {
     pub fn stop(&self) {
         print!("{esc}c", esc = 27 as char);
         self.is_spinning.store(false, Ordering::Relaxed);
+
+        disable_raw_mode().unwrap();
     }
 }
