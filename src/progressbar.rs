@@ -42,12 +42,7 @@ impl ProgressBar {
             execute!(stdout, Print("-"))?;
         }
 
-        execute!(
-            stdout,
-            Print("] "),
-            Print(format!("{:.1}%", percent)),
-            cursor::MoveToNextLine(1)
-        )?;
+        execute!(stdout, Print("] "), Print(format!("{:.1}%", percent)),)?;
 
         stdout.flush()?;
         Ok(())

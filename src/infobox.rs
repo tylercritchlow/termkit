@@ -10,7 +10,7 @@ pub struct InfoBox {
     pub title: String,
     pub message: String,
     pub width: usize,
-    pub padding: usize, 
+    pub padding: usize,
     pub title_color: Color,
     pub border_color: Color,
     pub message_color: Color,
@@ -31,7 +31,7 @@ impl InfoBox {
             message,
             width,
             padding: padding.unwrap_or(2),
-            title_color: title_color.unwrap_or(Color::White),  // Default to White if not provided
+            title_color: title_color.unwrap_or(Color::White), // Default to White if not provided
             border_color: border_color.unwrap_or(Color::Blue),
             message_color: message_color.unwrap_or(Color::Reset),
         }
@@ -46,7 +46,10 @@ impl InfoBox {
 
         execute!(
             stdout,
-            PrintStyledContent(format!("{: <width$}", self.title, width = total_width as usize).with(self.title_color))
+            PrintStyledContent(
+                format!("{: <width$}", self.title, width = total_width as usize)
+                    .with(self.title_color)
+            )
         )?;
         execute!(stdout, Print("\n"))?;
 
@@ -62,7 +65,7 @@ impl InfoBox {
             for _ in 0..self.padding {
                 execute!(stdout, Print(" "))?;
             }
-            execute!(stdout, PrintStyledContent(line.with(self.message_color)))?; 
+            execute!(stdout, PrintStyledContent(line.with(self.message_color)))?;
             for _ in 0..self.padding + (self.width - line.len()) {
                 execute!(stdout, Print(" "))?;
             }

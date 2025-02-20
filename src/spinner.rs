@@ -1,13 +1,16 @@
 use crossterm::terminal::Clear;
 use crossterm::{cursor, execute, style::Print, terminal::ClearType};
 use std::io::{stdout, Write};
-use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 use std::thread;
 use std::time::Duration;
 
 pub struct Spinner {
     frames: Vec<&'static str>,
-    is_spinning: Arc<AtomicBool>, 
+    is_spinning: Arc<AtomicBool>,
     position: (u16, u16),
 }
 
@@ -23,12 +26,12 @@ impl Spinner {
 
     pub fn render(&self) {
         let is_spinning = self.is_spinning.clone();
-        let position = self.position;
+        let position: (u16, u16) = self.position;
         let frames = self.frames.clone();
-        
+
         is_spinning.store(true, Ordering::Relaxed);
 
-        thread::spawn(move || { 
+        thread::spawn(move || {
             let mut current_frame = 0;
             while is_spinning.load(Ordering::Relaxed) {
                 let frame = frames[current_frame];
@@ -48,7 +51,12 @@ impl Spinner {
     }
 
     pub fn stop(&self) {
-        print!("{esc}c", esc = 27 as char);
+        execute!(
+            stdout(),
+            cursor::MoveTo(self.position.0, self.position.1),
+            Clear(ClearType::CurrentLine)
+        )
+        .unwrap();
         self.is_spinning.store(false, Ordering::Relaxed);
     }
 }

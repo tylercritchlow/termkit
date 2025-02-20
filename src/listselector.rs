@@ -4,8 +4,8 @@ use crossterm::{
     execute,
     style::{Print, Stylize},
     terminal::{
-        disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
-        LeaveAlternateScreen, size,
+        disable_raw_mode, enable_raw_mode, size, Clear, ClearType, EnterAlternateScreen,
+        LeaveAlternateScreen,
     },
 };
 use std::io::{stdout, Write};
@@ -21,7 +21,7 @@ impl ListSelector {
         Self {
             options,
             selected_index: 0,
-            top_visible_index: 0, 
+            top_visible_index: 0,
         }
     }
 
@@ -52,28 +52,34 @@ impl ListSelector {
     pub fn run(&mut self) -> Result<Option<&str>, Box<dyn std::error::Error>> {
         enable_raw_mode()?;
         let mut stdout = stdout();
-        execute!(stdout, EnterAlternateScreen, cursor::Hide, Clear(ClearType::All))?; 
+        execute!(
+            stdout,
+            EnterAlternateScreen,
+            cursor::Hide,
+            Clear(ClearType::All)
+        )?;
         self.render();
 
         loop {
             match read()? {
                 Event::Key(KeyEvent { code, .. }) => match code {
-                    KeyCode::Up => {
+                    KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
                         if self.selected_index > 0 {
                             self.selected_index -= 1;
                             if self.selected_index < self.top_visible_index {
-                                self.top_visible_index -= 1; 
+                                self.top_visible_index -= 1;
                             }
                         }
                         self.render();
                     }
-                    KeyCode::Down => {
+                    KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
                         if self.selected_index < self.options.len() - 1 {
                             self.selected_index += 1;
                             let (_, rows) = size().unwrap();
-                            let max_visible_index = (self.top_visible_index + (rows - 2) as usize).min(self.options.len() - 1); 
+                            let max_visible_index = (self.top_visible_index + (rows - 2) as usize)
+                                .min(self.options.len() - 1);
                             if self.selected_index > max_visible_index {
-                                self.top_visible_index += 1; 
+                                self.top_visible_index += 1;
                             }
                         }
                         self.render();

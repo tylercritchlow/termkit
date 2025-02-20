@@ -12,9 +12,14 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-crossterm = "0.27.0"
+crossterm = "0.28.1"
 textwrap = "0.16.1"
 
 [dev-dependencies]
-rand = "0.8.5"
-sysinfo = "0.30.12"
+term-kit = { path = "", features = ["full-tui-interface"] }
+rand = "0.9.0"
+sysinfo = "0.33.1"
+
+[features]
+default = []
+full-tui-interface = []
