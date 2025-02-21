@@ -16,24 +16,27 @@ Using `crossterm` for terminal manipulation, TermKit gives you drop-in widgets f
     - [x] Color Customization
     - [x] Padding Customization
     - [x] Linux + Windows + MacOS
-- [x] listselector: A list selector widget that allows you to select an item from a list.
+- [x] list selector: A list selector widget that allows you to select an item from a list.
     - [ ] Color Customization
     - [x] Linux + MacOS
     - [ ] Windows
 - [x] progressbar: A progress bar widget that displays a progress bar in the terminal.
     - [ ] Color Customization
     - [x] Linux + Windows + MacOS
+- [x] progressbar manager: A progress bar manager that helps manage multiple progress bars in the terminal.
+    - [ ] Color Customization
+    - [x] Linux + Windows + MacOS
 - [x] spinner: A spinner widget that displays a spinner in the terminal.
     - [ ] Color Customization
     - [x] Linux + Windows + MacOS
 - [x] meter: A meter that displays quantative and changing data in the terminal.
-    - gatekept behind `full-tui-interface` feature
+    - kept behind `full-tui-interface` feature
     - [x] Color Customization
     - [x] Linux + Windows + MacOS
 - [x] prompt: A prompt widget that displays a prompt with configurable options in the terminal.
     - [ ] Color Customization
     - [x] Linux + MacOS
-    - [ ] Windows (untested, may have the same problems as the listselector)
+    - [ ] Windows (untested, may have the same problems as the list selector)
 - [ ] table: A table widget that displays a table in the terminal.
 
 and more per request
@@ -44,11 +47,11 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-term-kit = "*"
+term-kit = "0.2.2"
 ```
 
 and refer to the [examples](examples) for usage.
 
 ## License
 
-Licensed under the MIT license.
+Licensed under the MIT license. See [LICENSE](LICENSE) for more information.

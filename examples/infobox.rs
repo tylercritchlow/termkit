@@ -1,5 +1,8 @@
 use term_kit::color::Color;
 use term_kit::infobox::InfoBox;
+
+mod progressbarmanager;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let infobox = InfoBox::new(
         String::from("Title"),

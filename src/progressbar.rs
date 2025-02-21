@@ -1,25 +1,29 @@
 use crossterm::{
     cursor, execute,
     style::{Color, Print, ResetColor, SetForegroundColor},
-    terminal::{Clear, ClearType},
+    terminal::{size, Clear, ClearType},
 };
 use std::io::{stdout, Write};
 
 pub struct ProgressBar {
-    pub value: u16,
-    pub max: u16,
-    pub width: u16,
-    pub label: String,
+    value: u16,
+    max: u16,
+    width: u16,
+    label: String,
 }
 
 impl ProgressBar {
-    pub fn new(value: u16, max: u16, width: u16, label: String) -> Self {
+    pub fn new(label: &str, max: u16, width: u16) -> Self {
         Self {
-            value,
+            value: 0,
             max,
             width,
-            label,
+            label: label.to_string(),
         }
+    }
+
+    pub fn update(&mut self, value: u16) {
+        self.value = value.min(self.max);
     }
 
     pub fn render(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -43,6 +47,49 @@ impl ProgressBar {
         }
 
         execute!(stdout, Print("] "), Print(format!("{:.1}%", percent)),)?;
+
+        stdout.flush()?;
+        Ok(())
+    }
+}
+
+pub struct ProgressBarManager {
+    bars: Vec<ProgressBar>,
+}
+
+impl ProgressBarManager {
+    pub fn new() -> Self {
+        Self { bars: Vec::new() }
+    }
+
+    pub fn add_bar(&mut self, label: &str, max: u16, width: u16) {
+        self.bars.push(ProgressBar::new(label, max, width));
+    }
+
+    pub fn update_bar(&mut self, index: usize, value: u16) {
+        if let Some(bar) = self.bars.get_mut(index) {
+            bar.update(value);
+        }
+    }
+
+    pub fn render_all(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let mut stdout = stdout();
+
+        let (cursor_x, cursor_y) = cursor::position()?;
+        let (_, terminal_height) = size()?;
+        let space_below = terminal_height.saturating_sub(cursor_y + 1);
+        let start_row = if space_below >= self.bars.len() as u16 {
+            cursor_y + 1
+        } else {
+            cursor_y.saturating_sub(self.bars.len() as u16)
+        };
+
+        for (i, bar) in self.bars.iter().enumerate() {
+            execute!(stdout, cursor::MoveTo(0, start_row + i as u16))?;
+            bar.render()?;
+        }
+
+        execute!(stdout, cursor::MoveTo(cursor_x, cursor_y))?;
 
         stdout.flush()?;
         Ok(())

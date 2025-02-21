@@ -2,11 +2,10 @@ use rand::{rng, Rng};
 use term_kit::progressbar::ProgressBar;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut progress_bar = ProgressBar::new(0, 100, 20, String::from("Loading..."));
+    let mut progress_bar = ProgressBar::new("Loading...", 100, 20);
 
     for i in 0..=100 {
-        //FIXME: This should work whether it is 100 or not
-        progress_bar.value = i;
+        progress_bar.update(i);
         progress_bar.render()?;
 
         // Simulate some work
