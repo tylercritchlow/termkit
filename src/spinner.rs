@@ -81,13 +81,13 @@ impl Spinner {
                 thread::sleep(Duration::from_millis(100));
             }
             let mut stdout = stdout();
-            execute!(stdout, Show).unwrap();
         });
     }
 
     pub fn stop(&self) {
         execute!(
             stdout(),
+            Show,
             cursor::MoveTo(self.position.0, self.position.1),
             Clear(ClearType::CurrentLine)
         )
