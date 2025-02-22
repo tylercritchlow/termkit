@@ -1,6 +1,6 @@
 use crossterm::{
     cursor,
-    event::{read, Event, KeyCode, KeyEvent},
+    event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
     execute,
     style::{Print, Stylize},
     terminal::{
@@ -62,7 +62,7 @@ impl ListSelector {
 
         loop {
             match read()? {
-                Event::Key(KeyEvent { code, .. }) => match code {
+                Event::Key(KeyEvent { code, kind: KeyEventKind::Press, .. }) => match code {
                     KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
                         if self.selected_index > 0 {
                             self.selected_index -= 1;

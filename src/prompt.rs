@@ -9,6 +9,7 @@ use crossterm::{
     },
 };
 use std::io::{stdout, Write};
+use crossterm::event::KeyEventKind;
 
 pub struct Prompt {
     prompt: String,
@@ -118,7 +119,7 @@ impl Prompt {
 
         loop {
             match read()? {
-                Event::Key(KeyEvent { code, .. }) => match code {
+                Event::Key(KeyEvent { code, kind: KeyEventKind::Press, .. }) => match code {
                     KeyCode::Char('\n') | KeyCode::Enter => {
                         disable_raw_mode()?;
                         execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
