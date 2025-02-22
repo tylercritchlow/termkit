@@ -1,6 +1,10 @@
-# TermKit
-
-A simple terminal widget kit made in Rust.
+<div align="center">
+  <h1><code>TermKit</code></h1>
+  <img src="./assets/termkitlogo.svg" width="128px" alt="TermKit Logo" />
+  <p>
+    <strong>A set of drop in terminal widgets made in Rust.</strong>
+  </p>
+</div>
 
 ## Features
 
