@@ -1,3 +1,6 @@
+pub use crate::spinner::LabelPosition::*;
+use crossterm::cursor::Hide;
+use crossterm::cursor::Show;
 use crossterm::terminal::Clear;
 use crossterm::{cursor, execute, style::Print, terminal::ClearType};
 use std::io::{stdout, Write};
@@ -8,10 +11,18 @@ use std::sync::{
 use std::thread;
 use std::time::Duration;
 
+#[derive(Clone)]
+pub enum LabelPosition {
+    Before,
+    After,
+}
+
 pub struct Spinner {
     frames: Vec<&'static str>,
     is_spinning: Arc<AtomicBool>,
     position: (u16, u16),
+    label: Option<String>,
+    label_position: LabelPosition,
 }
 
 impl Spinner {
@@ -21,13 +32,27 @@ impl Spinner {
             frames: vec!["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
             is_spinning: Arc::new(AtomicBool::new(false)),
             position: (x, y),
+            label: None,
+            label_position: After,
         }
     }
 
-    pub fn render(&self) {
+    pub fn with_label(mut self, label: String) -> Self {
+        self.label = Some(label);
+        self
+    }
+
+    pub fn with_label_position(mut self, label_position: LabelPosition) -> Self {
+        self.label_position = label_position;
+        self
+    }
+
+    pub fn start(&self) {
         let is_spinning = self.is_spinning.clone();
         let position: (u16, u16) = self.position;
         let frames = self.frames.clone();
+        let label = self.label.clone().unwrap_or("".to_string());
+        let label_position = self.label_position.clone();
 
         is_spinning.store(true, Ordering::Relaxed);
 
@@ -38,15 +63,25 @@ impl Spinner {
                 let mut stdout = stdout();
                 execute!(
                     stdout,
+                    Hide,
                     cursor::MoveTo(position.0, position.1),
                     Clear(ClearType::CurrentLine),
-                    Print(frame)
+                    match label_position {
+                        Before => {
+                            Print(format!(" {} {}", label, frame))
+                        }
+                        After => {
+                            Print(format!(" {} {}", frame, label))
+                        }
+                    }
                 )
                 .unwrap();
                 stdout.flush().unwrap();
                 current_frame = (current_frame + 1) % frames.len();
                 thread::sleep(Duration::from_millis(100));
             }
+            let mut stdout = stdout();
+            execute!(stdout, Show).unwrap();
         });
     }
 

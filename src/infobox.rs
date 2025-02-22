@@ -21,7 +21,6 @@ impl InfoBox {
         title: String,
         message: String,
         width: usize,
-        padding: Option<usize>,
         title_color: Option<Color>,
         border_color: Option<Color>,
         message_color: Option<Color>,
@@ -30,11 +29,16 @@ impl InfoBox {
             title,
             message,
             width,
-            padding: padding.unwrap_or(2),
+            padding: 2,
             title_color: title_color.unwrap_or(Color::White), // Default to White if not provided
             border_color: border_color.unwrap_or(Color::Blue),
             message_color: message_color.unwrap_or(Color::Reset),
         }
+    }
+
+    pub fn with_padding(mut self, padding: usize) -> Self {
+        self.padding = padding;
+        self
     }
 
     pub fn render(&self) -> Result<(), Box<dyn std::error::Error>> {
