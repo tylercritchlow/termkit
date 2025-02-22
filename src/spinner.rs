@@ -80,7 +80,6 @@ impl Spinner {
                 current_frame = (current_frame + 1) % frames.len();
                 thread::sleep(Duration::from_millis(100));
             }
-            let mut stdout = stdout();
         });
     }
 

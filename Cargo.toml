@@ -1,14 +1,13 @@
 [package]
 name = "term-kit"
 authors = ["Tyler Critchlow"]
-category = "utilities"
 keywords = ["terminal", "tui", "widgets"]
 description = "A simple terminal UI toolkit for Rust"
 license = "MIT"
 homepage = "https://github.com/tylercritchlow/termkit"
 readme = "README.md"
 repository = "https://github.com/tylercritchlow/termkit"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 
 [dependencies]
