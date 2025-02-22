@@ -3,10 +3,7 @@ use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
     execute,
     style::{Print, Stylize},
-    terminal::{
-        disable_raw_mode, enable_raw_mode, size, Clear, ClearType, EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
+    terminal::{size, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::{stdout, Write};
 
@@ -50,7 +47,6 @@ impl ListSelector {
     }
 
     pub fn run(&mut self) -> Result<Option<&str>, Box<dyn std::error::Error>> {
-        enable_raw_mode()?;
         let mut stdout = stdout();
         execute!(
             stdout,
@@ -62,7 +58,11 @@ impl ListSelector {
 
         loop {
             match read()? {
-                Event::Key(KeyEvent { code, kind: KeyEventKind::Press, .. }) => match code {
+                Event::Key(KeyEvent {
+                    code,
+                    kind: KeyEventKind::Press,
+                    ..
+                }) => match code {
                     KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
                         if self.selected_index > 0 {
                             self.selected_index -= 1;
@@ -92,8 +92,6 @@ impl ListSelector {
         }
 
         execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
-        disable_raw_mode()?;
-
         Ok(self.get_selected_option())
     }
 }
