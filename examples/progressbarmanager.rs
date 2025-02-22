@@ -9,7 +9,6 @@ fn main() {
 
     let mut manager = ProgressBarManager::new();
 
-
     manager.add_bar("Downloading 1", 100, 30);
     manager.add_bar("Downloading 2", 100, 30);
     manager.add_bar("Downloading 3", 100, 30);

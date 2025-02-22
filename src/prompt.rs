@@ -1,12 +1,10 @@
+use crossterm::event::KeyEventKind;
 use crossterm::{
     cursor,
     event::{read, Event, KeyCode, KeyEvent},
     execute,
     style::{Color, Print, Stylize},
-    terminal::{
-        disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
+    terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::{stdout, Write};
 
@@ -105,7 +103,6 @@ impl Prompt {
     }
 
     pub fn run(&mut self) -> Result<Option<&str>, Box<dyn std::error::Error>> {
-        enable_raw_mode()?;
         let mut stdout = stdout();
         execute!(
             stdout,
@@ -118,9 +115,12 @@ impl Prompt {
 
         loop {
             match read()? {
-                Event::Key(KeyEvent { code, .. }) => match code {
+                Event::Key(KeyEvent {
+                    code,
+                    kind: KeyEventKind::Press,
+                    ..
+                }) => match code {
                     KeyCode::Char('\n') | KeyCode::Enter => {
-                        disable_raw_mode()?;
                         execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
                         return Ok(self.get_selected_option().map(|s| s));
                     }
