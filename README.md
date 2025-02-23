@@ -1,6 +1,6 @@
 <div align="center">
   <h1><code>TermKit</code></h1>
-  <img src="./assets/termkitlogo.svg" width="256px" alt="TermKit Logo" />
+  <img src="./assets/termkitlogo.png" width="257.5" alt="TermKit Logo" />
   <p>
     <strong>A set of drop in terminal widgets made in Rust.</strong>
   </p>
