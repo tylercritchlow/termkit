@@ -49,7 +49,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-term-kit = "0.2.3"
+term-kit = "0.2.4"
 ```
 
 and refer to the [examples](examples) for usage.

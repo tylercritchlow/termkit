@@ -7,6 +7,7 @@ use crossterm::{
     terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::{stdout, Write};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 
 pub struct Prompt {
     prompt: String,
@@ -104,6 +105,7 @@ impl Prompt {
 
     pub fn run(&mut self) -> Result<Option<&str>, Box<dyn std::error::Error>> {
         let mut stdout = stdout();
+        enable_raw_mode()?;
         execute!(
             stdout,
             EnterAlternateScreen,
@@ -122,6 +124,7 @@ impl Prompt {
                 }) => match code {
                     KeyCode::Char('\n') | KeyCode::Enter => {
                         execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
+                        disable_raw_mode()?;
                         return Ok(self.get_selected_option().map(|s| s));
                     }
                     KeyCode::Left | KeyCode::Char('h') | KeyCode::Char('H') => {

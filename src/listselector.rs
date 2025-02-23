@@ -6,6 +6,7 @@ use crossterm::{
     terminal::{size, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::{stdout, Write};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 
 pub struct ListSelector {
     options: Vec<String>,
@@ -48,6 +49,7 @@ impl ListSelector {
 
     pub fn run(&mut self) -> Result<Option<&str>, Box<dyn std::error::Error>> {
         let mut stdout = stdout();
+        enable_raw_mode()?;
         execute!(
             stdout,
             EnterAlternateScreen,
@@ -91,6 +93,7 @@ impl ListSelector {
             }
         }
 
+        disable_raw_mode()?;
         execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
         Ok(self.get_selected_option())
     }
