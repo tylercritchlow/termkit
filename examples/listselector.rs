@@ -1,6 +1,6 @@
 use term_kit::listselector::ListSelector;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let options = vec![
         "Red".to_string(),
         "Green".to_string(),
@@ -17,7 +17,9 @@ fn main() {
     ];
     let mut selector = ListSelector::new(options);
 
-    if let Some(selected_color) = selector.run().unwrap() {
+    if let Some(selected_color) = selector.run()? {
         println!("You selected: {}", selected_color);
     }
+
+    Ok(())
 }
