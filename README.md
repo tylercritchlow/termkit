@@ -38,8 +38,10 @@ Using `crossterm` for terminal manipulation, TermKit gives you drop-in widgets f
     - [x] Linux + Windows + MacOS
 - [x] prompt: A prompt widget that displays a prompt with configurable options in the terminal.
     - [ ] Color Customization
-  - [x] Linux + Windows + MacOS
-- [ ] table: A table widget that displays a table in the terminal.
+    - [x] Linux + Windows + MacOS
+- [x] table: A table widget that displays a table in the terminal.
+    - [x] Color Customization
+    - [x] Linux + Windows + MacOS
 
 and more per request
 
