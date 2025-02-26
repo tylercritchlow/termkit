@@ -55,6 +55,6 @@ fn main() {
     table5.set_cell(0, 1, "Medium Length".to_string());
     table5.set_cell(1, 0, "A much longer string that will stretch the column width".to_string());
     table5.set_cell(1, 1, "Short again".to_string());
-    table5.set_cell(2, 0, "some short value".to_string());
+    table5.set_cell(2, 0, "Some short value".to_string());
     table5.render().unwrap();
 }
