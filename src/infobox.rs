@@ -59,7 +59,7 @@ impl<W: Write> InfoBox<W> {
     }
 
     pub fn render(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let t   otal_width = self.width + 2 * self.padding + 2;
+        let total_width = self.width + 2 * self.padding + 2;
         execute!(self.writer, cursor::MoveToColumn(0))?;
         execute!(self.writer, Clear(ClearType::UntilNewLine))?;
 
