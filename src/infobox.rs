@@ -3,6 +3,7 @@ use crossterm::{
     style::{Color, Print, PrintStyledContent, Stylize},
     terminal::{Clear, ClearType},
 };
+use std::cell::RefCell;
 use std::io::{stdout, Stdout, Write};
 use textwrap::fill;
 
@@ -14,37 +15,33 @@ pub struct InfoBox<W: Write = Stdout> {
     pub title_color: Color,
     pub border_color: Color,
     pub message_color: Color,
-    pub writer: W,
-} 
+    pub writer: RefCell<W>, // Use RefCell for interior mutability
+}
 
 impl InfoBox<Stdout> {
-    pub fn new(
-        title: String,
-        message: String,
-        width: usize,
-        title_color: Option<Color>,
-        border_color: Option<Color>,
-        message_color: Option<Color>,
-    ) -> Self {
+    /// Creates a new `InfoBox` with default colors.
+    pub fn new(title: impl Into<String>, message: impl Into<String>, width: usize) -> Self {
         Self {
-            title,
-            message,
+            title: title.into(),
+            message: message.into(),
             width,
-            padding: 2,
-            title_color: title_color.unwrap_or(Color::White),
-            border_color: border_color.unwrap_or(Color::Blue),
-            message_color: message_color.unwrap_or(Color::Reset),
-            writer: stdout(),
+            padding: 2, // Default padding
+            title_color: Color::White,
+            border_color: Color::Blue,
+            message_color: Color::Reset,
+            writer: RefCell::new(stdout()), // Wrap stdout in RefCell
         }
     }
 }
 
 impl<W: Write> InfoBox<W> {
+    /// Sets custom padding.
     pub fn with_padding(mut self, padding: usize) -> Self {
         self.padding = padding;
         self
     }
 
+    /// Sets a custom writer (for testing or redirection).
     pub fn with_custom_writer<W2: Write>(self, writer: W2) -> InfoBox<W2> {
         InfoBox {
             title: self.title,
@@ -54,50 +51,70 @@ impl<W: Write> InfoBox<W> {
             title_color: self.title_color,
             border_color: self.border_color,
             message_color: self.message_color,
-            writer,
+            writer: RefCell::new(writer), // Wrap the new writer in RefCell
         }
     }
 
-    pub fn render(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    /// Sets a custom title color.
+    pub fn with_title_color(mut self, color: Color) -> Self {
+        self.title_color = color;
+        self
+    }
+
+    /// Sets a custom border color.
+    pub fn with_border_color(mut self, color: Color) -> Self {
+        self.border_color = color;
+        self
+    }
+
+    /// Sets a custom message color.
+    pub fn with_message_color(mut self, color: Color) -> Self {
+        self.message_color = color;
+        self
+    }
+
+    /// Renders the InfoBox.
+    pub fn render(&self) -> Result<(), Box<dyn std::error::Error>> {
         let total_width = self.width + 2 * self.padding + 2;
-        execute!(self.writer, cursor::MoveToColumn(0))?;
-        execute!(self.writer, Clear(ClearType::UntilNewLine))?;
+        let mut writer = self.writer.borrow_mut(); // Borrow the writer mutably
+
+        execute!(writer, cursor::MoveToColumn(0))?;
+        execute!(writer, Clear(ClearType::UntilNewLine))?;
 
         execute!(
-            self.writer,
+            writer,
             PrintStyledContent(
-                format!("{: <width$}", self.title, width = total_width)
-                    .with(self.title_color)
+                format!("{: <width$}", self.title, width = total_width).with(self.title_color)
             )
         )?;
-        execute!(self.writer, Print("\n"))?;
+        execute!(writer, Print("\n"))?;
 
-        execute!(self.writer, PrintStyledContent("┌".with(self.border_color)))?;
+        execute!(writer, PrintStyledContent("┌".with(self.border_color)))?;
         for _ in 0..total_width - 2 {
-            execute!(self.writer, PrintStyledContent("─".with(self.border_color)))?;
+            execute!(writer, PrintStyledContent("─".with(self.border_color)))?;
         }
-        execute!(self.writer, PrintStyledContent("┐\n".with(self.border_color)))?;
+        execute!(writer, PrintStyledContent("┐\n".with(self.border_color)))?;
 
         let wrapped_message = fill(&self.message, self.width);
         for line in wrapped_message.lines() {
-            execute!(self.writer, PrintStyledContent("│".with(self.border_color)))?;
+            execute!(writer, PrintStyledContent("│".with(self.border_color)))?;
             for _ in 0..self.padding {
-                execute!(self.writer, Print(" "))?;
+                execute!(writer, Print(" "))?;
             }
-            execute!(self.writer, PrintStyledContent(line.with(self.message_color)))?;
+            execute!(writer, PrintStyledContent(line.with(self.message_color)))?;
             for _ in 0..self.padding + (self.width - line.len()) {
-                execute!(self.writer, Print(" "))?;
+                execute!(writer, Print(" "))?;
             }
-            execute!(self.writer, PrintStyledContent("│\n".with(self.border_color)))?;
+            execute!(writer, PrintStyledContent("│\n".with(self.border_color)))?;
         }
 
-        execute!(self.writer, PrintStyledContent("└".with(self.border_color)))?;
+        execute!(writer, PrintStyledContent("└".with(self.border_color)))?;
         for _ in 0..total_width - 2 {
-            execute!(self.writer, PrintStyledContent("─".with(self.border_color)))?;
+            execute!(writer, PrintStyledContent("─".with(self.border_color)))?;
         }
-        execute!(self.writer, PrintStyledContent("┘\n".with(self.border_color)))?;
+        execute!(writer, PrintStyledContent("┘\n".with(self.border_color)))?;
 
-        self.writer.flush()?;
+        writer.flush()?;
         Ok(())
     }
 }
