@@ -1,4 +1,5 @@
 use crossterm::event::KeyEventKind;
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use crossterm::{
     cursor,
     event::{read, Event, KeyCode, KeyEvent},
@@ -7,7 +8,6 @@ use crossterm::{
     terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::{stdout, Write};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 
 pub struct Prompt {
     prompt: String,

@@ -15,7 +15,7 @@ fn main() {
         "Gray".to_string(),
         "Cyan".to_string(),
     ];
-    let mut selector = ListSelector::new(options);
+    let selector = ListSelector::new(options);
 
     if let Some(selected_color) = selector.run().unwrap() {
         println!("You selected: {}", selected_color);

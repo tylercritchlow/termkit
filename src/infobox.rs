@@ -15,7 +15,7 @@ pub struct InfoBox<W: Write = Stdout> {
     pub title_color: Color,
     pub border_color: Color,
     pub message_color: Color,
-    pub writer: RefCell<W>, // Use RefCell for interior mutability
+    pub writer: RefCell<W>,
 }
 
 impl InfoBox<Stdout> {
@@ -25,11 +25,11 @@ impl InfoBox<Stdout> {
             title: title.into(),
             message: message.into(),
             width,
-            padding: 2, // Default padding
+            padding: 2,
             title_color: Color::White,
             border_color: Color::Blue,
             message_color: Color::Reset,
-            writer: RefCell::new(stdout()), // Wrap stdout in RefCell
+            writer: RefCell::new(stdout()),
         }
     }
 }
@@ -51,7 +51,7 @@ impl<W: Write> InfoBox<W> {
             title_color: self.title_color,
             border_color: self.border_color,
             message_color: self.message_color,
-            writer: RefCell::new(writer), // Wrap the new writer in RefCell
+            writer: RefCell::new(writer),
         }
     }
 
@@ -76,7 +76,7 @@ impl<W: Write> InfoBox<W> {
     /// Renders the InfoBox.
     pub fn render(&self) -> Result<(), Box<dyn std::error::Error>> {
         let total_width = self.width + 2 * self.padding + 2;
-        let mut writer = self.writer.borrow_mut(); // Borrow the writer mutably
+        let mut writer = self.writer.borrow_mut();
 
         execute!(writer, cursor::MoveToColumn(0))?;
         execute!(writer, Clear(ClearType::UntilNewLine))?;
