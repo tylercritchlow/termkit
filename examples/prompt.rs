@@ -1,15 +1,20 @@
 use term_kit::prompt::Prompt;
 
-fn main() {
-    let options = vec![
-        "Option 1".to_string(),
-        "Option 2".to_string(),
-        "Option 3".to_string(),
-    ];
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let prompt1 = Prompt::new(
+        "What would you like to build?".to_string(),
+        vec![
+            "Option 1".to_string(),
+            "Option 2".to_string(),
+            "Option 3".to_string(),
+        ],
+    );
 
-    let mut prompt = Prompt::new("Choose an option".to_string(), options);
+    let _selected = prompt1.run()?; // Run the prompt, and get the selected option
 
-    if let Some(selected_option) = prompt.run().unwrap() {
-        println!("You selected: {}", selected_option);
-    }
+    Ok(())
 }
+// ? What would you like to build? ❯
+// ♦ Blah (selected index)
+//   Blah
+//   Blah

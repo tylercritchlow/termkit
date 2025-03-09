@@ -1,118 +1,153 @@
-use crossterm::event::KeyEventKind;
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use crossterm::{
     cursor,
-    event::{read, Event, KeyCode, KeyEvent},
+    event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
     execute,
-    style::{Color, Print, Stylize},
-    terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
+    style::{Color, Print, PrintStyledContent, Stylize},
+    terminal::{self, Clear, ClearType},
 };
-use std::io::{stdout, Write};
+use std::{
+    cell::{Cell, RefCell},
+    io::{stdout, Stdout, Write},
+};
 
-pub struct Prompt {
-    prompt: String,
-    input_options: Vec<String>,
-    selected_index: usize,
+use crate::RawModeGuard;
+
+pub struct Prompt<W: Write = Stdout> {
+    pub message: String,
+    pub options: Vec<String>,
+    pub selected_index: Cell<usize>,
+    pub writer: RefCell<W>,
+    pub message_color: Color,
+    pub arrow_color: Color,
+    pub selected_option_color: Color,
+    pub unselected_option_color: Color,
+    pub diamond_color: Color,
+    pub question_mark_color: Color,
 }
 
-impl Prompt {
-    pub fn new(prompt: String, options: Vec<String>) -> Self {
+impl Prompt<Stdout> {
+    pub fn new(message: String, options: Vec<String>) -> Self {
         Self {
-            prompt,
-            input_options: options,
-            selected_index: 0,
+            message,
+            options,
+            selected_index: Cell::new(0),
+            writer: RefCell::new(stdout()),
+            message_color: Color::Grey,
+            arrow_color: Color::DarkGreen,
+            selected_option_color: Color::Yellow,
+            unselected_option_color: Color::White,
+            diamond_color: Color::Green,
+            question_mark_color: Color::Green,
         }
+    }
+}
+
+impl<W: Write> Prompt<W> {
+    pub fn with_custom_writer<W2: Write>(self, writer: W2) -> Prompt<W2> {
+        Prompt {
+            message: self.message,
+            options: self.options,
+            selected_index: self.selected_index,
+            writer: RefCell::new(writer),
+            message_color: self.message_color,
+            arrow_color: self.arrow_color,
+            selected_option_color: self.selected_option_color,
+            unselected_option_color: self.unselected_option_color,
+            diamond_color: self.diamond_color,
+            question_mark_color: self.question_mark_color,
+        }
+    }
+
+    pub fn with_colors(
+        mut self,
+        message_color: Color,
+        arrow_color: Color,
+        selected_option_color: Color,
+        unselected_option_color: Color,
+        diamond_color: Color,
+        question_mark_color: Color,
+    ) -> Self {
+        self.message_color = message_color;
+        self.arrow_color = arrow_color;
+        self.selected_option_color = selected_option_color;
+        self.unselected_option_color = unselected_option_color;
+        self.diamond_color = diamond_color;
+        self.question_mark_color = question_mark_color;
+        self
     }
 
     pub fn get_selected_option(&self) -> Option<&str> {
-        self.input_options
-            .get(self.selected_index)
+        self.options
+            .get(self.selected_index.get())
             .map(String::as_str)
     }
 
-    pub fn render(&self) {
-        let mut stdout = stdout();
-        execute!(stdout, cursor::MoveTo(0, 0), Clear(ClearType::All)).unwrap();
+    fn setup(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let (_, rows) = terminal::size()?;
+        let lines_needed = self.options.len() + 2;
+        let cursor_pos = cursor::position()?.1;
 
-        self.render_bordered_box();
-
-        let mut x = 2;
-        for (i, option) in self.input_options.iter().enumerate() {
-            execute!(stdout, cursor::MoveTo(x, 3)).unwrap();
-            if i == self.selected_index {
-                execute!(stdout, Print("> ".with(Color::Yellow))).unwrap();
-                execute!(stdout, Print(option.clone().with(Color::Yellow).bold())).unwrap();
-            } else {
-                execute!(stdout, Print("  ".with(Color::White))).unwrap();
-                execute!(stdout, Print(option.clone().with(Color::White))).unwrap();
+        if cursor_pos + lines_needed as u16 > rows {
+            let mut writer = self.writer.borrow_mut();
+            for _ in 0..(lines_needed - (rows - cursor_pos as u16) as usize) {
+                execute!(writer, Print("\n"))?;
             }
-            x += option.len() as u16 + 4; // Add spacing between options
         }
+        Ok(())
+    }
 
-        execute!(stdout, cursor::MoveTo(1, 5)).unwrap();
+    pub fn render(&self) {
+        let mut writer = self.writer.borrow_mut();
+        let lines_needed = self.options.len() + 2;
+
         execute!(
-            stdout,
-            Print("Use ←/→ to navigate, Enter to select".with(Color::DarkGrey))
+            writer,
+            cursor::MoveUp(lines_needed as u16 - 1),
+            Clear(ClearType::FromCursorDown)
         )
         .unwrap();
 
-        stdout.flush().unwrap();
-    }
-
-    fn calculate_border_width(&self) -> u16 {
-        let total_options_width: u16 = self
-            .input_options
-            .iter()
-            .map(|option| option.len() as u16 + 4)
-            .sum();
-        let prompt_width = self.prompt.len() as u16 + 2;
-        std::cmp::max(total_options_width, prompt_width) // Use the larger of the two
-    }
-
-    fn render_bordered_box(&self) {
-        let mut stdout = stdout();
-        let border_width = self.calculate_border_width();
-
-        // Top border
-        execute!(stdout, Print("╭".with(Color::Blue))).unwrap();
-        for _ in 0..border_width {
-            execute!(stdout, Print("─".with(Color::Blue))).unwrap();
-        }
-        execute!(stdout, Print("╮".with(Color::Blue))).unwrap();
-
-        // Prompt line
         execute!(
-            stdout,
-            cursor::MoveTo(1, 1),
-            Print(format!(" {} ", self.prompt).with(Color::Yellow))
+            writer,
+            PrintStyledContent("?".with(self.question_mark_color)),
+            Print(" "),
+            PrintStyledContent(self.message.clone().with(self.message_color)),
+            cursor::MoveToNextLine(1),
         )
         .unwrap();
 
-        // Middle border (below the prompt)
-        execute!(stdout, cursor::MoveTo(0, 2), Print("├".with(Color::Blue))).unwrap();
-        for _ in 0..border_width {
-            execute!(stdout, Print("─".with(Color::Blue))).unwrap();
+        for (i, option) in self.options.iter().enumerate() {
+            if i == self.selected_index.get() {
+                execute!(
+                    writer,
+                    PrintStyledContent("♦".with(self.diamond_color)),
+                    Print(" "),
+                    PrintStyledContent(option.clone().with(self.selected_option_color)),
+                    cursor::MoveToNextLine(1),
+                )
+                .unwrap();
+            } else {
+                execute!(
+                    writer,
+                    PrintStyledContent(format!("  {}", option).with(self.unselected_option_color)),
+                    cursor::MoveToNextLine(1),
+                )
+                .unwrap();
+            }
         }
-        execute!(stdout, Print("┤".with(Color::Blue))).unwrap();
 
-        // Bottom border (below the options)
-        execute!(stdout, cursor::MoveTo(0, 4), Print("╰".with(Color::Blue))).unwrap();
-        for _ in 0..border_width {
-            execute!(stdout, Print("─".with(Color::Blue))).unwrap();
-        }
-        execute!(stdout, Print("╯".with(Color::Blue))).unwrap();
+        writer.flush().unwrap();
     }
 
-    pub fn run(&mut self) -> Result<Option<&str>, Box<dyn std::error::Error>> {
-        let mut stdout = stdout();
-        enable_raw_mode()?;
-        execute!(
-            stdout,
-            EnterAlternateScreen,
-            cursor::Hide,
-            Clear(ClearType::All)
-        )?;
+    pub fn run(&self) -> Result<Option<&str>, Box<dyn std::error::Error>> {
+        let _raw_mode_guard = RawModeGuard::new()?;
 
+        {
+            let mut writer = self.writer.borrow_mut();
+            execute!(writer, cursor::Hide)?;
+        }
+
+        self.setup()?;
         self.render();
 
         loop {
@@ -121,27 +156,51 @@ impl Prompt {
                     code,
                     kind: KeyEventKind::Press,
                     ..
-                }) => match code {
-                    KeyCode::Char('\n') | KeyCode::Enter => {
-                        execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
-                        disable_raw_mode()?;
-                        return Ok(self.get_selected_option().map(|s| s));
-                    }
-                    KeyCode::Left | KeyCode::Char('h') | KeyCode::Char('H') => {
-                        if self.selected_index > 0 {
-                            self.selected_index -= 1;
+                }) => {
+                    let prev_index = self.selected_index.get();
+                    match code {
+                        KeyCode::Up => {
+                            if prev_index > 0 {
+                                self.selected_index.set(prev_index - 1);
+                            }
                         }
-                    }
-                    KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
-                        if self.selected_index < self.input_options.len() - 1 {
-                            self.selected_index += 1;
+                        KeyCode::Down => {
+                            if prev_index < self.options.len() - 1 {
+                                self.selected_index.set(prev_index + 1);
+                            }
                         }
+                        KeyCode::Enter => break,
+                        _ => {}
                     }
-                    _ => {}
-                },
+                    if self.selected_index.get() != prev_index {
+                        self.render();
+                    }
+                }
                 _ => {}
             }
-            self.render();
         }
+
+        {
+            let mut writer = self.writer.borrow_mut();
+            let lines_needed = self.options.len() + 2;
+            let selected_option = self.get_selected_option().unwrap_or("");
+
+            execute!(
+                writer,
+                cursor::MoveUp(lines_needed as u16 - 1),
+                Clear(ClearType::FromCursorDown),
+                PrintStyledContent("?".with(self.question_mark_color)),
+                Print(" "),
+                PrintStyledContent(self.message.clone().with(self.message_color)),
+                Print(" "),
+                PrintStyledContent("❯".with(self.arrow_color)),
+                Print(" "),
+                PrintStyledContent(selected_option.with(self.selected_option_color)),
+                cursor::MoveToNextLine(1),
+                cursor::Show
+            )?;
+        }
+
+        Ok(self.get_selected_option())
     }
 }
